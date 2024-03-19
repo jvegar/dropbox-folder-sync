@@ -22,7 +22,7 @@ function throughDirectory(directory: string): void {
   });
 }
 
-export function getPaths(directory: string): IPath[] {
+export function getLocalPaths(directory: string): IPath[] {
   throughDirectory(directory);
   return files.map((file) => {
     return {
