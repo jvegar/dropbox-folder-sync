@@ -18,11 +18,9 @@ export async function validateFileIsSynched(
       const stats = await fse.stat(localPath);
       const localModifiedTime = stats.mtime;
       const remoteModifiedTime = new Date(remoteFile.server_modified);
-      if (localModifiedTime < remoteModifiedTime) {
-        return false;
-      }
+      return localModifiedTime > remoteModifiedTime;
     }
-    return true;
+    return false;
   } catch (error) {
     console.error(error);
   }

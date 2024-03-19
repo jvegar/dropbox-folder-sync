@@ -31,11 +31,11 @@ async function main() {
         sourcePath + result.path_display,
         result
       );
-      if (!fileIsSynched) {
+      if (fileIsSynched) {
+        console.info(`File: ${result.path_display} is already synched`);
+      } else {
         await saveFileToLocal(result, sourcePath + result.path_display);
         console.info(`File: ${result.path_display} was successfully synched`);
-      } else {
-        console.info(`File: ${result.path_display} is already synched`);
       }
     }
   }
