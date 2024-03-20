@@ -13,8 +13,7 @@ export async function uploadFile(
       contents,
       mode: { ".tag": "overwrite" },
     });
-    console.log(res.status);
-    console.log(res.headers);
+    console.log(`File: ${dstPath} was successfully uploaded.`);
   } catch (error) {
     console.error(error);
   }
