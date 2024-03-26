@@ -1,10 +1,7 @@
-// const path = require("path");
 import path from "path";
-
-// const fs = require("fs");
 import fs from "fs";
 
-let files: string[] = [];
+let filePaths: string[] = [];
 
 interface IPath {
   dstPath: string;
@@ -17,17 +14,17 @@ function throughDirectory(directory: string): void {
     if (fs.statSync(absolute).isDirectory()) {
       return throughDirectory(absolute);
     } else {
-      return files.push(absolute);
+      return filePaths.push(absolute);
     }
   });
 }
 
 export function getLocalPaths(directory: string): IPath[] {
   throughDirectory(directory);
-  return files.map((file) => {
+  return filePaths.map((filePath) => {
     return {
-      dstPath: file.replace(directory, ""),
-      srcPath: file,
+      dstPath: filePath.replace(directory, ""),
+      srcPath: filePath,
     };
   });
 }
