@@ -1,8 +1,8 @@
 import { Dropbox, DropboxResponse, files } from "dropbox";
 import fs from "fs/promises";
 import { IClient } from "../types/IClient";
-import { mapToFilesMetadata } from "../util/download";
-import { IFileMetadata } from "../types/IFileMetadata";
+import { mapToFilesMetadata } from "../utils";
+import { IRemoteFileMetadata } from "../types/IFileMetadata";
 
 export class DropBoxClient implements IClient {
   private dbx: Dropbox;
@@ -12,32 +12,41 @@ export class DropBoxClient implements IClient {
     this.dbx = new Dropbox({ clientId, clientSecret, refreshToken });
   }
 
-  public async getRemoteFilesMetadata(
+  public async getRemoteFilesMetadataFromPath(
     rootPath: string
-  ): Promise<IFileMetadata[]> {
+  ): Promise<IRemoteFileMetadata[]> {
     try {
       const {
-        result: { entries },
-      } = await this.dbx.filesListFolder({ path: rootPath });
-      const filesMetadata = mapToFilesMetadata(entries as files.FileMetadata[]);
+        result: { entries: fileEntries },
+      } = await this.dbx.filesListFolder({ path: rootPath, recursive: true });
+
+      const filesMetadata = mapToFilesMetadata(
+        fileEntries as files.FileMetadata[]
+      );
 
       this.files = [...this.files, ...filesMetadata];
-      for (let i = 0; i < entries.length; i++) {
-        if (entries[i][".tag"] === "folder") {
-          await this.getRemoteFilesMetadata(entries[i]["path_display"] || "");
+
+      for (let fileMetadata of filesMetadata) {
+        if (fileMetadata.tag === "folder") {
+          await this.getRemoteFilesMetadataFromPath(
+            fileMetadata.pathDisplay || ""
+          );
         }
       }
+
       return this.files;
     } catch (error) {
       throw new Error((error as Error).message);
     }
   }
 
-  public async downloadRemoteFile(
+  public async getRemoteFile(
     remoteFilePath: string
-  ): Promise<DropboxResponse<files.FileMetadata>> {
+  ): Promise<files.FileMetadata> {
     try {
-      const file = await this.dbx.filesDownload({ path: remoteFilePath });
+      const { result: file } = await this.dbx.filesDownload({
+        path: remoteFilePath,
+      });
       return file;
     } catch (error) {
       throw new Error((error as Error).message);
@@ -45,14 +54,14 @@ export class DropBoxClient implements IClient {
   }
 
   public async uploadLocalFile(
-    remoteFilePath: any,
+    remoteFilePath: string,
     localFilePath: string
   ): Promise<void> {
     try {
-      const contents = await fs.readFile(localFilePath, {});
+      const fileContents = await fs.readFile(localFilePath, {});
       await this.dbx.filesUpload({
         path: remoteFilePath,
-        contents,
+        contents: fileContents,
         mode: { ".tag": "overwrite" },
       });
       console.log(`File: ${remoteFilePath} was successfully uploaded.`);
@@ -61,7 +70,12 @@ export class DropBoxClient implements IClient {
     }
   }
 
-  public async deleteRemoteFile(remotePath: string) {
-    await this.dbx.filesDeleteV2({ path: remotePath });
+  public async deleteRemoteFile(remoteFilePath: string) {
+    try {
+      await this.dbx.filesDeleteV2({ path: remoteFilePath });
+      console.log(`File: ${remoteFilePath} was successfully deleted.`);
+    } catch (error) {
+      console.error(error);
+    }
   }
 }

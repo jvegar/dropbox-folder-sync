@@ -1,9 +1,9 @@
-export interface IFileMetadata {
+export interface IRemoteFileMetadata {
   id: string;
   name: string;
   tag?: string;
-  pathLower?: string;
-  pathDisplay?: string;
+  pathLower: string;
+  pathDisplay: string;
   clientModified: Date;
   serverModified: Date;
   rev: string;

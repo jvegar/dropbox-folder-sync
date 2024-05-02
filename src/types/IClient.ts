@@ -1,8 +1,10 @@
-import { IFileMetadata } from "./IFileMetadata";
+import { IRemoteFileMetadata } from "./IFileMetadata";
 
 export interface IClient {
-  getRemoteFilesMetadata: (remoteFile: string) => Promise<IFileMetadata[]>;
-  downloadRemoteFile: (remoteFilePath: string) => Promise<any>;
+  getRemoteFilesMetadataFromPath: (
+    remoteFile: string
+  ) => Promise<IRemoteFileMetadata[]>;
+  getRemoteFile: (remoteFilePath: string) => Promise<any>;
   uploadLocalFile: (
     remoteFilePath: string,
     localFilePath: string
