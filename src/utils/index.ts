@@ -91,7 +91,7 @@ export function mapToFilesMetadata(remoteFiles: files.FileMetadata[]): IRemoteFi
 }
 
 export function isEmpty(path: string) {
-  return fs.readdirSync(path).length === 0;
+  return fs.readdirSync(path).length === 1 && fs.readdirSync(path)[0] === '.obsidian';
 }
 
 export async function regenerateDatabase(prisma: PrismaClient) {
