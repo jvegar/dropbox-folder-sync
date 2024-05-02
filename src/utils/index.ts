@@ -1,12 +1,8 @@
-import fs from "fs";
-import { files } from "dropbox";
-import fse from "fs-extra";
-import { IRemoteFileMetadata } from "../types/IFileMetadata";
-import { PrismaClient } from "@prisma/client";
-type Models = keyof Omit<
-  PrismaClient,
-  "disconnect" | "connect" | "executeRaw" | "queryRaw" | "transaction" | "on"
->;
+import fs from 'fs';
+import { files } from 'dropbox';
+import fse from 'fs-extra';
+import { FileMetadata, IRemoteFileMetadata } from '../types/IFileMetadata';
+import { PrismaClient } from '@prisma/client';
 
 interface LocalFileMedata {
   path: string;
@@ -21,19 +17,13 @@ interface LocalFileMedata {
  * @param filePathsList
  * @returns
  */
-export function getLocalFilePathsSync(
-  directory: string,
-  filePathsList: string[]
-): string[] {
+export function getLocalFilePathsSync(directory: string, filePathsList: string[]): string[] {
   const files = fs.readdirSync(directory);
   filePathsList = filePathsList || [];
   files.forEach((file) => {
     const fileStats = fs.statSync(directory + file);
     if (fileStats.isDirectory()) {
-      filePathsList = getLocalFilePathsSync(
-        directory + file + "/",
-        filePathsList
-      );
+      filePathsList = getLocalFilePathsSync(directory + file + '/', filePathsList);
     } else {
       if (fileStats.isFile()) filePathsList.push(directory + file);
     }
@@ -64,13 +54,15 @@ export function getLocalFilesStats(filePathsList: string[]): LocalFileMedata[] {
  * @param remoteFile
  * @param localPath
  */
-export async function saveFileToLocal(
-  remoteFile: any,
-  localPath: string
-): Promise<void> {
+export async function saveFileToLocal(remoteFile: FileMetadata, localPath: string): Promise<void> {
   try {
-    const binary = Buffer.from(remoteFile.fileBinary);
-    await fse.outputFile(localPath, binary);
+    let binary = null;
+    if (remoteFile.fileBinary) {
+      binary = Buffer.from(remoteFile.fileBinary);
+      await fse.outputFile(localPath, binary);
+    } else {
+      throw new Error('File binary is null or undefined');
+    }
   } catch (error) {
     throw new Error((error as Error).message);
   }
@@ -81,15 +73,13 @@ export async function saveFileToLocal(
  * @param remoteFiles
  * @returns
  */
-export function mapToFilesMetadata(
-  remoteFiles: files.FileMetadata[]
-): IRemoteFileMetadata[] {
+export function mapToFilesMetadata(remoteFiles: files.FileMetadata[]): IRemoteFileMetadata[] {
   return remoteFiles.map((remoteFile) => {
     return {
       id: remoteFile.id,
       name: remoteFile.name,
-      pathLower: remoteFile.path_lower ?? "",
-      pathDisplay: remoteFile.path_display ?? "",
+      pathLower: remoteFile.path_lower ?? '',
+      pathDisplay: remoteFile.path_display ?? '',
       clientModified: new Date(remoteFile.client_modified),
       serverModified: new Date(remoteFile.server_modified),
       rev: remoteFile.rev,

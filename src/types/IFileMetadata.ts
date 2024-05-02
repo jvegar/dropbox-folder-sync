@@ -1,3 +1,5 @@
+import { files } from 'dropbox';
+
 export interface IRemoteFileMetadata {
   id: string;
   name: string;
@@ -11,3 +13,5 @@ export interface IRemoteFileMetadata {
   isDownloadable: boolean;
   contentHash?: string;
 }
+
+export type FileMetadata = files.FileMetadata & { fileBinary?: WithImplicitCoercion<ArrayBuffer | SharedArrayBuffer> };
